@@ -144,21 +144,27 @@
 */
 
 :host.light {
-  /* TODO: change the page background to a light color */
+  background: #f0f0f0;
 }
 
 .calculator.light {
-  /* TODO: change the calculator background to a light color */
+  background: #ffffff;
 }
 
 .calculator.light .display {
-  /* TODO: change the display background and text color */
+  background: #e0e0e0;
+}
+
+.calculator.light .display__value {
+  color: #1a1a1a;
 }
 
 .calculator.light .btn {
-  /* TODO: change the button background and text color */
+  background: #d4d4d4;
+  color: #1a1a1a;
 }
 
 .calculator.light .btn--utility {
-  /* TODO: style the utility buttons for light mode */
+  background: #c0c0c0;
+  color: #333333;
 }

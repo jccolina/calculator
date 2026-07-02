@@ -132,8 +132,7 @@ export class AppComponent {
    * will update automatically once you toggle the property.
    */
   toggleTheme(): void {
-    // TODO: implement me!
-    // Step 1 – flip this.isLightMode to its opposite value (use the ! operator)
+    this.isLightMode = !this.isLightMode;
   }
 
   /**
@@ -146,10 +145,8 @@ export class AppComponent {
    * Remember to handle the edge case where the display is '0'.
    */
   pressToggleSign(): void {
-    // TODO: implement me!
-    // Step 1 – convert this.display to a number
-    // Step 2 – multiply by -1
-    // Step 3 – assign the result back to this.display (as a string)
+    const value = parseFloat(this.display) * -1;
+    this.display = value === 0 ? '0' : value.toString();
   }
 
   /**
@@ -161,10 +158,8 @@ export class AppComponent {
    * Hint: divide the current display value by 100, then update this.display.
    */
   pressPercent(): void {
-    // TODO: implement me!
-    // Step 1 – convert this.display to a number
-    // Step 2 – divide by 100
-    // Step 3 – assign the result back to this.display (as a string)
+    const value = parseFloat(this.display) / 100;
+    this.display = value.toString();
   }
 
 
