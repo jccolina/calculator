@@ -19,7 +19,7 @@
   [class.light] is a conditional class binding — it adds the CSS class 'light'
   to the host element whenever the 'isLightMode' property is true.
 -->
-<button class="theme-toggle" (click)="toggleTheme()">
+<button class="theme-toggle" (click)="toggleTheme()" [attr.aria-pressed]="isLightMode">
   {{ isLightMode ? '☀️ Light' : '🌙 Dark' }}
 </button>
 

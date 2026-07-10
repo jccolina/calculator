@@ -321,4 +321,100 @@ describe('AppComponent (Calculator)', () => {
     expect(displayEl.textContent.trim()).toBe('50.5');
   });
 
+  // ─── EXERCISE 3 — toggleTheme() ──────────────────────────────────────────────
+
+  // ✅ Initial state: dark mode, button shows "Dark", aria-pressed reflects it
+  it('should start in dark mode with the correct label and aria-pressed', () => {
+    const buttons: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('button');
+    const btn = Array.from(buttons).find(b => b.className.includes('theme-toggle'));
+
+    expect(btn).toBeTruthy();
+    expect(btn!.textContent?.trim()).toBe('🌙 Dark');
+    expect(btn!.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  // ✅ Toggling once flips the internal flag
+  it('should set isLightMode to true after one toggle', () => {
+    component.toggleTheme();
+    expect(component.isLightMode).toBeTrue();
+  });
+
+  // Regression guard — the 'light' class must land on BOTH the host element
+  // and .calculator, otherwise the :host.light CSS rule never applies.
+  it('should add the "light" class to both the host and .calculator', () => {
+    component.toggleTheme();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.classList.contains('light')).toBeTrue();
+    const calculatorEl = fixture.nativeElement.querySelector('.calculator');
+    expect(calculatorEl.classList.contains('light')).toBeTrue();
+  });
+
+  // ✅ Label and aria-pressed update together with the toggle
+  it('should update the label and aria-pressed to light mode after toggling', () => {
+    component.toggleTheme();
+    fixture.detectChanges();
+
+    const buttons: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('button');
+    const btn = Array.from(buttons).find(b => b.className.includes('theme-toggle'));
+
+    expect(btn!.textContent?.trim()).toBe('☀️ Light');
+    expect(btn!.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  // ✅ Toggling twice returns everything to the original dark state
+  it('should return to dark mode after toggling twice', () => {
+    component.toggleTheme();
+    component.toggleTheme();
+    fixture.detectChanges();
+
+    const buttons: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('button');
+    const btn = Array.from(buttons).find(b => b.className.includes('theme-toggle'));
+
+    expect(component.isLightMode).toBeFalse();
+    expect(btn!.textContent?.trim()).toBe('🌙 Dark');
+    expect(btn!.getAttribute('aria-pressed')).toBe('false');
+    expect(fixture.nativeElement.classList.contains('light')).toBeFalse();
+  });
+
+  // Negative case — the theme is orthogonal to the calculator's own state
+  it('should not affect display, firstOperand, operator or waitingForSecondOperand', () => {
+    component.pressDigit('7');
+    component.pressOperator('+');
+
+    component.toggleTheme();
+
+    expect(component.display).toBe('7');
+    expect(component.firstOperand).toBe(7);
+    expect(component.operator).toBe('+');
+    expect(component.waitingForSecondOperand).toBeTrue();
+  });
+
+  // Negative case (inverse) — calculator actions must not reset the theme
+  it('should not reset isLightMode when pressClear, pressDigit or pressOperator run', () => {
+    component.toggleTheme(); // switch to light mode
+
+    component.pressDigit('9');
+    component.pressOperator('+');
+    component.pressClear();
+
+    expect(component.isLightMode).toBeTrue();
+  });
+
+  // Edge case — toggling mid-operation must not disrupt the pending calculation
+  it('should not disrupt a pending operation when the theme is toggled mid-flow', () => {
+    component.pressDigit('5');
+    component.pressOperator('+');
+    component.toggleTheme();
+    component.pressDigit('3');
+    component.pressEquals();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('8');
+  });
+
 });
