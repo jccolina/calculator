@@ -15,6 +15,7 @@ import { Component } from '@angular/core';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
+  host: { '[class.light]': 'isLightMode' },
 })
 export class AppComponent {
 
@@ -132,8 +133,7 @@ export class AppComponent {
    * will update automatically once you toggle the property.
    */
   toggleTheme(): void {
-    // TODO: implement me!
-    // Step 1 – flip this.isLightMode to its opposite value (use the ! operator)
+    this.isLightMode = !this.isLightMode;
   }
 
   /**
@@ -146,10 +146,8 @@ export class AppComponent {
    * Remember to handle the edge case where the display is '0'.
    */
   pressToggleSign(): void {
-    // TODO: implement me!
-    // Step 1 – convert this.display to a number
-    // Step 2 – multiply by -1
-    // Step 3 – assign the result back to this.display (as a string)
+    const currentValue = parseFloat(this.display);
+    this.display = (currentValue * -1).toString();
   }
 
   /**

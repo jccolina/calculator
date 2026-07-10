@@ -198,13 +198,24 @@ describe('AppComponent (Calculator)', () => {
   // 🎯 YOUR TURN — after implementing EXERCISE 1:
   //   display shows "5" → press +/- → display should show "-5"
   it('should change a positive number to negative when +/- is pressed', () => {
-    pending('Student exercise — implement pressToggleSign() first, then write this test');
+    component.pressDigit('5');
+    component.pressToggleSign();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('-5');
   });
 
   // 🎯 YOUR TURN — after implementing EXERCISE 1:
   //   display shows "-5" → press +/- → display should show "5"
   it('should change a negative number to positive when +/- is pressed', () => {
-    pending('Student exercise — implement pressToggleSign() first, then write this test');
+    component.pressDigit('5');
+    component.pressToggleSign();
+    component.pressToggleSign();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('5');
   });
 
   // ─── EXERCISE 2 — pressPercent() ─────────────────────────────────────────────
