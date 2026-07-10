@@ -15,6 +15,7 @@ import { Component } from '@angular/core';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
+  host: { '[class.light]': 'isLightMode' },
 })
 export class AppComponent {
 
@@ -86,7 +87,7 @@ export class AppComponent {
     }
 
     // Save the current display value as the first operand.
-    this.firstOperand = parseFloat(this.display);
+    this.firstOperand = this.readDisplayValue();
 
     // Remember which operator was pressed.
     this.operator = op;
@@ -132,8 +133,7 @@ export class AppComponent {
    * will update automatically once you toggle the property.
    */
   toggleTheme(): void {
-    // TODO: implement me!
-    // Step 1 – flip this.isLightMode to its opposite value (use the ! operator)
+    this.isLightMode = !this.isLightMode;
   }
 
   /**
@@ -146,10 +146,7 @@ export class AppComponent {
    * Remember to handle the edge case where the display is '0'.
    */
   pressToggleSign(): void {
-    // TODO: implement me!
-    // Step 1 – convert this.display to a number
-    // Step 2 – multiply by -1
-    // Step 3 – assign the result back to this.display (as a string)
+    this.writeDisplayValue(this.readDisplayValue() * -1);
   }
 
   /**
@@ -161,14 +158,26 @@ export class AppComponent {
    * Hint: divide the current display value by 100, then update this.display.
    */
   pressPercent(): void {
-    // TODO: implement me!
-    // Step 1 – convert this.display to a number
-    // Step 2 – divide by 100
-    // Step 3 – assign the result back to this.display (as a string)
+    this.writeDisplayValue(this.readDisplayValue() / 100);
   }
 
 
   // ─── Private helpers ──────────────────────────────────────────────────────
+
+  /**
+   * Reads the current display value as a number.
+   */
+  private readDisplayValue(): number {
+    return parseFloat(this.display);
+  }
+
+  /**
+   * Writes a number back to the display, avoiding ugly floating-point
+   * noise (e.g. 0.1 + 0.2) by rounding to 10 significant digits first.
+   */
+  private writeDisplayValue(value: number): void {
+    this.display = parseFloat(value.toPrecision(10)).toString();
+  }
 
   /**
    * Performs the arithmetic operation stored in this.operator using
@@ -176,7 +185,7 @@ export class AppComponent {
    * The result is written back to this.display.
    */
   private calculate(): void {
-    const secondOperand = parseFloat(this.display);
+    const secondOperand = this.readDisplayValue();
     let result: number;
 
     // Pick the right arithmetic operation based on the stored operator.
@@ -200,8 +209,8 @@ export class AppComponent {
         return; // Unknown operator — do nothing.
     }
 
-    // Show the result; avoid ugly floating-point noise (e.g. 0.1 + 0.2).
-    this.display = parseFloat(result.toPrecision(10)).toString();
+    // Show the result.
+    this.writeDisplayValue(result);
 
     // The result becomes the new first operand for chained operations.
     this.firstOperand = result;

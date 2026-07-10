@@ -198,13 +198,24 @@ describe('AppComponent (Calculator)', () => {
   // 🎯 YOUR TURN — after implementing EXERCISE 1:
   //   display shows "5" → press +/- → display should show "-5"
   it('should change a positive number to negative when +/- is pressed', () => {
-    pending('Student exercise — implement pressToggleSign() first, then write this test');
+    component.pressDigit('5');
+    component.pressToggleSign();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('-5');
   });
 
   // 🎯 YOUR TURN — after implementing EXERCISE 1:
   //   display shows "-5" → press +/- → display should show "5"
   it('should change a negative number to positive when +/- is pressed', () => {
-    pending('Student exercise — implement pressToggleSign() first, then write this test');
+    component.pressDigit('5');
+    component.pressToggleSign();
+    component.pressToggleSign();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('5');
   });
 
   // ─── EXERCISE 2 — pressPercent() ─────────────────────────────────────────────
@@ -222,10 +233,188 @@ describe('AppComponent (Calculator)', () => {
     expect(() => component.pressPercent()).not.toThrow();
   });
 
-  // 🎯 YOUR TURN — after implementing EXERCISE 2:
-  //   display shows "50" → press % → display should show "0.5"
+  // display shows "50" → press % → display should show "0.5"
   it('should divide the displayed number by 100 when % is pressed', () => {
-    pending('Student exercise — implement pressPercent() first, then write this test');
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0.5');
+  });
+
+  // display shows "200" → press % → display should show "2" (not "2.0")
+  it('should return a whole number without a trailing decimal', () => {
+    component.pressDigit('2');
+    component.pressDigit('0');
+    component.pressDigit('0');
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('2');
+  });
+
+  // display shows "1" → press % → display should show "0.01"
+  it('should handle small numbers that need extra decimal places', () => {
+    component.pressDigit('1');
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0.01');
+  });
+
+  // Edge case — 0% should stay "0", not "NaN" or "-0"
+  it('should keep the display as "0" when pressing % on zero', () => {
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0');
+  });
+
+  // Edge case — negative numbers must keep their sign
+  it('should preserve the sign when pressing % on a negative number', () => {
+    component.pressDigit('5');
+    component.pressToggleSign(); // display: "-5"
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('-0.05');
+  });
+
+  // Edge case — pressing % repeatedly should keep dividing by 100 each time
+  it('should divide by 100 again if % is pressed a second time', () => {
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressPercent();
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0.005');
+  });
+
+  // Edge case — % must not touch any pending operation state
+  it('should not affect firstOperand or operator when % is pressed', () => {
+    component.pressPercent();
+
+    expect(component.firstOperand).toBeNull();
+    expect(component.operator).toBeNull();
+  });
+
+  // Integration — the percent result must work as a normal operand afterwards
+  it('should use the percent result correctly in a later operation', () => {
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressPercent(); // display: "0.5"
+    component.pressOperator('+');
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressEquals();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('50.5');
+  });
+
+  // ─── EXERCISE 3 — toggleTheme() ──────────────────────────────────────────────
+
+  // ✅ Initial state: dark mode, button shows "Dark", aria-pressed reflects it
+  it('should start in dark mode with the correct label and aria-pressed', () => {
+    const buttons: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('button');
+    const btn = Array.from(buttons).find(b => b.className.includes('theme-toggle'));
+
+    expect(btn).toBeTruthy();
+    expect(btn!.textContent?.trim()).toBe('🌙 Dark');
+    expect(btn!.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  // ✅ Toggling once flips the internal flag
+  it('should set isLightMode to true after one toggle', () => {
+    component.toggleTheme();
+    expect(component.isLightMode).toBeTrue();
+  });
+
+  // Regression guard — the 'light' class must land on BOTH the host element
+  // and .calculator, otherwise the :host.light CSS rule never applies.
+  it('should add the "light" class to both the host and .calculator', () => {
+    component.toggleTheme();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.classList.contains('light')).toBeTrue();
+    const calculatorEl = fixture.nativeElement.querySelector('.calculator');
+    expect(calculatorEl.classList.contains('light')).toBeTrue();
+  });
+
+  // ✅ Label and aria-pressed update together with the toggle
+  it('should update the label and aria-pressed to light mode after toggling', () => {
+    component.toggleTheme();
+    fixture.detectChanges();
+
+    const buttons: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('button');
+    const btn = Array.from(buttons).find(b => b.className.includes('theme-toggle'));
+
+    expect(btn!.textContent?.trim()).toBe('☀️ Light');
+    expect(btn!.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  // ✅ Toggling twice returns everything to the original dark state
+  it('should return to dark mode after toggling twice', () => {
+    component.toggleTheme();
+    component.toggleTheme();
+    fixture.detectChanges();
+
+    const buttons: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('button');
+    const btn = Array.from(buttons).find(b => b.className.includes('theme-toggle'));
+
+    expect(component.isLightMode).toBeFalse();
+    expect(btn!.textContent?.trim()).toBe('🌙 Dark');
+    expect(btn!.getAttribute('aria-pressed')).toBe('false');
+    expect(fixture.nativeElement.classList.contains('light')).toBeFalse();
+  });
+
+  // Negative case — the theme is orthogonal to the calculator's own state
+  it('should not affect display, firstOperand, operator or waitingForSecondOperand', () => {
+    component.pressDigit('7');
+    component.pressOperator('+');
+
+    component.toggleTheme();
+
+    expect(component.display).toBe('7');
+    expect(component.firstOperand).toBe(7);
+    expect(component.operator).toBe('+');
+    expect(component.waitingForSecondOperand).toBeTrue();
+  });
+
+  // Negative case (inverse) — calculator actions must not reset the theme
+  it('should not reset isLightMode when pressClear, pressDigit or pressOperator run', () => {
+    component.toggleTheme(); // switch to light mode
+
+    component.pressDigit('9');
+    component.pressOperator('+');
+    component.pressClear();
+
+    expect(component.isLightMode).toBeTrue();
+  });
+
+  // Edge case — toggling mid-operation must not disrupt the pending calculation
+  it('should not disrupt a pending operation when the theme is toggled mid-flow', () => {
+    component.pressDigit('5');
+    component.pressOperator('+');
+    component.toggleTheme();
+    component.pressDigit('3');
+    component.pressEquals();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('8');
   });
 
 });
