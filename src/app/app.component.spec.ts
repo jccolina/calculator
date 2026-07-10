@@ -233,10 +233,92 @@ describe('AppComponent (Calculator)', () => {
     expect(() => component.pressPercent()).not.toThrow();
   });
 
-  // 🎯 YOUR TURN — after implementing EXERCISE 2:
-  //   display shows "50" → press % → display should show "0.5"
+  // display shows "50" → press % → display should show "0.5"
   it('should divide the displayed number by 100 when % is pressed', () => {
-    pending('Student exercise — implement pressPercent() first, then write this test');
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0.5');
+  });
+
+  // display shows "200" → press % → display should show "2" (not "2.0")
+  it('should return a whole number without a trailing decimal', () => {
+    component.pressDigit('2');
+    component.pressDigit('0');
+    component.pressDigit('0');
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('2');
+  });
+
+  // display shows "1" → press % → display should show "0.01"
+  it('should handle small numbers that need extra decimal places', () => {
+    component.pressDigit('1');
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0.01');
+  });
+
+  // Edge case — 0% should stay "0", not "NaN" or "-0"
+  it('should keep the display as "0" when pressing % on zero', () => {
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0');
+  });
+
+  // Edge case — negative numbers must keep their sign
+  it('should preserve the sign when pressing % on a negative number', () => {
+    component.pressDigit('5');
+    component.pressToggleSign(); // display: "-5"
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('-0.05');
+  });
+
+  // Edge case — pressing % repeatedly should keep dividing by 100 each time
+  it('should divide by 100 again if % is pressed a second time', () => {
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressPercent();
+    component.pressPercent();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('0.005');
+  });
+
+  // Edge case — % must not touch any pending operation state
+  it('should not affect firstOperand or operator when % is pressed', () => {
+    component.pressPercent();
+
+    expect(component.firstOperand).toBeNull();
+    expect(component.operator).toBeNull();
+  });
+
+  // Integration — the percent result must work as a normal operand afterwards
+  it('should use the percent result correctly in a later operation', () => {
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressPercent(); // display: "0.5"
+    component.pressOperator('+');
+    component.pressDigit('5');
+    component.pressDigit('0');
+    component.pressEquals();
+    fixture.detectChanges();
+
+    const displayEl = fixture.nativeElement.querySelector('.display__value');
+    expect(displayEl.textContent.trim()).toBe('50.5');
   });
 
 });
